@@ -1,18 +1,35 @@
 {
-    "name": "filacero",
-    "version": "0.1.0",
-    "private": true,
-    "type": "module",
-    "workspaces": [
-        "apps/*"
-    ],
-    "scripts": {
-        "dev:api": "npm run dev -w apps/api",
-        "dev:web": "npm run dev -w apps/web",
-        "build:web": "npm run build -w apps/web",
-        "test": "npm test -w apps/api"
-    },
-    "engines": {
-        "node": ">=20"
-    }
+  "name": "filacero",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "apps/api",
+    "apps/web"
+  ],
+  "scripts": {
+    "dev": "concurrently --kill-others --names API,WEB \"npm run dev:api\" \"npm run dev:web\"",
+    "dev:api": "npm run dev --workspace=@filacero/api",
+    "dev:web": "npm run dev --workspace=@filacero/web",
+
+    "start:api": "npm run start --workspace=@filacero/api",
+
+    "build": "npm run build:web",
+    "build:web": "npm run build --workspace=@filacero/web",
+
+    "lint:api": "npm run lint --workspace=@filacero/api",
+    "typecheck:web": "npm run typecheck --workspace=@filacero/web",
+
+    "test": "npm run test --workspace=@filacero/api",
+    "test:api": "npm run test --workspace=@filacero/api",
+
+    "check:firestore": "npm run check:firestore --workspace=@filacero/api",
+    "dev:token": "npm run dev:token --workspace=@filacero/api --"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  },
+  "engines": {
+    "node": ">=24.0.0"
+  }
 }
