@@ -1,0 +1,43 @@
+# Dependencias
+node_modules/
+
+# Variables de entorno (solo se sube .env.example)
+.env
+.env.*
+!.env.example
+
+# Credenciales y secretos
+secrets/
+serviceAccount*.json
+*-firebase-adminsdk-*.json
+*.pem
+*.key
+
+# Build y caché
+dist/
+.output/
+.nuxt/
+.nitro/
+.cache/
+coverage/
+
+# Pruebas e2e (Playwright)
+test-results/
+playwright-report/
+playwright/.cache/
+
+# Firebase
+.firebase/
+firebase-debug.log*
+firestore-debug.log
+ui-debug.log
+
+# Logs
+*.log
+npm-debug.log*
+
+# Editor y sistema
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
