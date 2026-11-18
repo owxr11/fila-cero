@@ -18,6 +18,66 @@ export const openapi = {
                 scheme: 'bearer',
                 bearerFormat: 'JWT'
             }
+        },
+        schemas: {
+            Service: {
+                type: 'object',
+                properties: {
+                    id: { type: 'string' },
+                    orgId: { type: 'string', example: 'demo' },
+                    name: { type: 'string', example: 'Caja' },
+                    prefix: { type: 'string', example: 'A' },
+                    active: { type: 'boolean' },
+                    createdAt: { type: 'string', format: 'date-time', nullable: true },
+                    updatedAt: { type: 'string', format: 'date-time', nullable: true }
+                }
+            },
+            ServiceInput: {
+                type: 'object',
+                required: ['name', 'prefix'],
+                properties: {
+                    name: { type: 'string', minLength: 2, maxLength: 60, example: 'Caja' },
+                    prefix: { type: 'string', pattern: '^[A-Z]$', example: 'A' },
+                    active: { type: 'boolean', default: true }
+                }
+            },
+            ServiceUpdate: {
+                type: 'object',
+                properties: {
+                    name: { type: 'string', minLength: 2, maxLength: 60 },
+                    prefix: { type: 'string', pattern: '^[A-Z]$' },
+                    active: { type: 'boolean' }
+                }
+            },
+            Counter: {
+                type: 'object',
+                properties: {
+                    id: { type: 'string' },
+                    orgId: { type: 'string', example: 'demo' },
+                    name: { type: 'string', example: 'Módulo 1' },
+                    serviceIds: { type: 'array', items: { type: 'string' } },
+                    active: { type: 'boolean' },
+                    createdAt: { type: 'string', format: 'date-time', nullable: true },
+                    updatedAt: { type: 'string', format: 'date-time', nullable: true }
+                }
+            },
+            CounterInput: {
+                type: 'object',
+                required: ['name', 'serviceIds'],
+                properties: {
+                    name: { type: 'string', minLength: 2, maxLength: 60, example: 'Módulo 1' },
+                    serviceIds: { type: 'array', minItems: 1, items: { type: 'string' } },
+                    active: { type: 'boolean', default: true }
+                }
+            },
+            CounterUpdate: {
+                type: 'object',
+                properties: {
+                    name: { type: 'string', minLength: 2, maxLength: 60 },
+                    serviceIds: { type: 'array', minItems: 1, items: { type: 'string' } },
+                    active: { type: 'boolean' }
+                }
+            }
         }
     },
     paths: {
@@ -133,6 +193,118 @@ export const openapi = {
                 responses: {
                     200: { description: 'Usuario actual (sin passwordHash)' },
                     401: { description: 'Token ausente o inválido' }
+                }
+            }
+        },
+        '/services': {
+            get: {
+                tags: ['Servicios'],
+                summary: 'Listar servicios',
+                parameters: [
+                    { name: 'active', in: 'query', required: false, schema: { type: 'string', enum: ['true', 'false'] } }
+                ],
+                responses: {
+                    200: { description: 'Lista de servicios ordenada por prefijo' }
+                }
+            },
+            post: {
+                tags: ['Servicios'],
+                summary: 'Crear servicio',
+                security: [{ bearerAuth: [] }],
+                requestBody: {
+                    required: true,
+                    content: { 'application/json': { schema: { $ref: '#/components/schemas/ServiceInput' } } }
+                },
+                responses: {
+                    201: { description: 'Servicio creado' },
+                    400: { description: 'Datos inválidos' },
+                    401: { description: 'Autenticación requerida' },
+                    403: { description: 'Sin permiso services:create' },
+                    409: { description: 'El prefijo ya está en uso' }
+                }
+            }
+        },
+        '/services/{id}': {
+            get: {
+                tags: ['Servicios'],
+                summary: 'Obtener un servicio',
+                parameters: [
+                    { name: 'id', in: 'path', required: true, schema: { type: 'string' } }
+                ],
+                responses: {
+                    200: { description: 'Servicio encontrado' },
+                    404: { description: 'Servicio no encontrado' }
+                }
+            },
+            patch: {
+                tags: ['Servicios'],
+                summary: 'Actualizar servicio',
+                security: [{ bearerAuth: [] }],
+                parameters: [
+                    { name: 'id', in: 'path', required: true, schema: { type: 'string' } }
+                ],
+                requestBody: {
+                    required: true,
+                    content: { 'application/json': { schema: { $ref: '#/components/schemas/ServiceUpdate' } } }
+                },
+                responses: {
+                    200: { description: 'Servicio actualizado' },
+                    400: { description: 'Datos inválidos' },
+                    401: { description: 'Autenticación requerida' },
+                    403: { description: 'Sin permiso services:update' },
+                    404: { description: 'Servicio no encontrado' },
+                    409: { description: 'El prefijo ya está en uso' }
+                }
+            }
+        },
+        '/counters': {
+            get: {
+                tags: ['Módulos'],
+                summary: 'Listar módulos de atención',
+                security: [{ bearerAuth: [] }],
+                parameters: [
+                    { name: 'active', in: 'query', required: false, schema: { type: 'string', enum: ['true', 'false'] } }
+                ],
+                responses: {
+                    200: { description: 'Lista de módulos' },
+                    401: { description: 'Autenticación requerida' },
+                    403: { description: 'Sin permiso counters:read' }
+                }
+            },
+            post: {
+                tags: ['Módulos'],
+                summary: 'Crear módulo',
+                security: [{ bearerAuth: [] }],
+                requestBody: {
+                    required: true,
+                    content: { 'application/json': { schema: { $ref: '#/components/schemas/CounterInput' } } }
+                },
+                responses: {
+                    201: { description: 'Módulo creado' },
+                    400: { description: 'Datos inválidos o servicios inexistentes' },
+                    401: { description: 'Autenticación requerida' },
+                    403: { description: 'Sin permiso counters:create' }
+                }
+            }
+        },
+        '/counters/{id}': {
+            patch: {
+                tags: ['Módulos'],
+                summary: 'Actualizar módulo',
+                security: [{ bearerAuth: [] }],
+                parameters: [
+                    { name: 'id', in: 'path', required: true, schema: { type: 'string' } }
+                ],
+                requestBody: {
+                    required: true,
+                    content: { 'application/json': { schema: { $ref: '#/components/schemas/CounterUpdate' } } }
+                },
+                responses: {
+                    200: { description: 'Módulo actualizado' },
+                    400: { description: 'Datos inválidos o servicios inexistentes' },
+                    401: { description: 'Autenticación requerida' },
+                    403: { description: 'Sin permiso counters:update' },
+                    404: { description: 'Módulo no encontrado' }
                 }
             }
         }
