@@ -20,11 +20,19 @@
           Tablero
         </NuxtLink>
 
-        <NuxtLink class="rounded px-3 py-2 font-medium text-slate-700 hover:bg-slate-100" to="/operator">
+        <NuxtLink
+          v-if="auth.isOperator"
+          class="rounded px-3 py-2 font-medium text-slate-700 hover:bg-slate-100"
+          to="/operator"
+        >
           Operador
         </NuxtLink>
 
-        <NuxtLink class="rounded px-3 py-2 font-medium text-slate-700 hover:bg-slate-100" to="/admin">
+        <NuxtLink
+          v-if="auth.isAdmin"
+          class="rounded px-3 py-2 font-medium text-slate-700 hover:bg-slate-100"
+          to="/admin"
+        >
           Admin
         </NuxtLink>
 
@@ -56,8 +64,8 @@
 <script setup lang="ts">
 const auth = useAuthStore()
 
-function logout() {
-  auth.logout()
-  navigateTo('/login')
+async function logout() {
+  await auth.logout()
+  await navigateTo('/login')
 }
 </script>

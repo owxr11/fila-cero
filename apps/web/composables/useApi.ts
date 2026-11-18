@@ -29,8 +29,9 @@ export function useApi() {
 
   async function request<TResponse, TBody = unknown>(
     path: string,
-    options: ApiRequestOptions<TBody> = {}
-  ) {
+    options: ApiRequestOptions<TBody> = {},
+    retried = false
+  ): Promise<TResponse> {
     const headers = new Headers({
       Accept: 'application/json'
     })
@@ -54,6 +55,14 @@ export function useApi() {
             : JSON.stringify(options.body)
       }
     )
+
+    // El accessToken dura 15 min: si expiró, se renueva una vez con el refreshToken y se reintenta
+    if (response.status === 401 && options.auth && !retried && auth.refreshToken) {
+      const renewed = await auth.refreshSession()
+      if (renewed) {
+        return request<TResponse, TBody>(path, options, true)
+      }
+    }
 
     if (response.status === 204) {
       return undefined as TResponse

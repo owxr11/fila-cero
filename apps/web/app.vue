@@ -10,7 +10,12 @@
 <script setup lang="ts">
 const auth = useAuthStore()
 
-onMounted(() => {
+onMounted(async () => {
   auth.restoreSession()
+
+  // Refresca los datos del usuario (por si cambió su rol); si la sesión ya no es válida, se limpia
+  if (auth.isAuthenticated) {
+    await auth.loadMe().catch(() => auth.clearSession())
+  }
 })
 </script>

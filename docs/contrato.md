@@ -139,6 +139,7 @@ Para R1 hay una sola organización con id `demo`.
 | POST | `/auth/register` | público | `{ name, email, password }` | `{ user, accessToken, refreshToken }` | 1 |
 | POST | `/auth/login` | público | `{ email, password }` | `{ user, accessToken, refreshToken }` | 1 |
 | POST | `/auth/refresh` | público | `{ refreshToken }` | `{ accessToken, refreshToken }` | 1 |
+| POST | `/auth/logout` | público | `{ refreshToken }` | 204 sin contenido | 1 |
 | GET | `/auth/me` | autenticado | — | `user` (sin `passwordHash`) | 1 |
 | GET | `/services` | público | — | `Service[]` | 2 |
 | GET | `/services/:id` | público | — | `Service` | 2 |
