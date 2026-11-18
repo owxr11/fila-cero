@@ -1,8 +1,4 @@
 rules_version = '2';
-
-// Base del Paso 0 — Responsable de afinarlas: Integrante 5.
-// Toda escritura pasa por la API (firebase-admin ignora estas reglas),
-// así que desde el cliente se niega todo por defecto.
 service cloud.firestore {
   match /databases/{database}/documents {
     match /{document=**} {
