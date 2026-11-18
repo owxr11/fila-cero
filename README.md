@@ -32,4 +32,4 @@ El sistema permitirá a los usuarios obtener un ticket y observar el avance de l
 *   **Operador Módulo 1:** op1@filacero.test / password123
 
 ## Enlaces de Diseño
-*   *Las capturas de las 4 pantallas se encuentran en la carpeta `/evidencias`.*
+*   Las capturas de las 4 pantallas se encuentran en la carpeta `/evidencias`
