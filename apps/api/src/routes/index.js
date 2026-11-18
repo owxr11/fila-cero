@@ -4,7 +4,7 @@ import healthRoutes from '../modules/health/health.routes.js'
 import authRoutes from '../modules/auth/auth.routes.js'
 import serviceRoutes from '../modules/services/service.routes.js'
 import counterRoutes from '../modules/counters/counter.routes.js'
-import ticketRoutes from '../modules/tickets/ticket.routes.js'
+import ticketRoutes from '../modules/tickets/tickets.routes.js'
 import queueRoutes from '../modules/queue/queue.routes.js'
 
 

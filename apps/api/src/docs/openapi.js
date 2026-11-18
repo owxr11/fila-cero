@@ -307,6 +307,29 @@ export const openapi = {
                     404: { description: 'Módulo no encontrado' }
                 }
             }
-        }
+        },
+        '/tickets': {
+            post: {
+                tags: ['Tickets'],
+                summary: 'Emitir un turno (público)',
+                requestBody: {
+                    required: true,
+                    content: {
+                        'application/json': {
+                            schema: {
+                                type: 'object', required: ['serviceId'],
+                                properties: { serviceId: { type: 'string' } },
+                            }
+                        }
+                    },
+                },
+                responses: {
+                    201: { description: 'Ticket creado (id, code, number, status)' },
+                    400: { description: 'Datos inválidos' },
+                    404: { description: 'Servicio no encontrado' },
+                    409: { description: 'Servicio inactivo' },
+                },
+            },
+        },
     }
 }
