@@ -77,6 +77,46 @@ export const openapi = {
                     serviceIds: { type: 'array', minItems: 1, items: { type: 'string' } },
                     active: { type: 'boolean' }
                 }
+            },
+            // TicketStatus
+            TicketStatusView: {
+                type: 'object',
+                properties: {
+                    id: { type: 'string' },
+                    code: { type: 'string', example: 'A-007' },
+                    serviceName: { type: 'string', example: 'Caja' },
+                    status: { type: 'string', enum: ['WAITING', 'CALLED', 'IN_SERVICE', 'DONE', 'CANCELLED'] },
+                    ahead: { type: 'integer', minimum: 0, example: 3, description: 'Personas delante (tickets WAITING del mismo servicio y día con número menor)' }
+                }
+            },
+            // QueueView: {
+            QueueView: {
+                type: 'object',
+                properties: {
+                    serviceId: { type: 'string' },
+                    dayKey: { type: 'string', example: '2026-11-19' },
+                    current: {
+                        type: 'object',
+                        nullable: true,
+                        properties: {
+                            id: { type: 'string' },
+                            code: { type: 'string', example: 'A-006' },
+                            counterId: { type: 'string', nullable: true }
+                        }
+                    },
+                    waiting: {
+                        type: 'array',
+                        description: 'Tickets en espera del día, ordenados por número',
+                        items: {
+                            type: 'object',
+                            properties: {
+                                id: { type: 'string' },
+                                code: { type: 'string', example: 'A-007' },
+                                number: { type: 'integer', example: 7 }
+                            }
+                        }
+                    }
+                }
             }
         }
     },
@@ -330,6 +370,62 @@ export const openapi = {
                     409: { description: 'Servicio inactivo' },
                 },
             },
+        },
+        // queue
+        '/queue/tickets/{id}': {
+            get: {
+                tags: ['Cola'],
+                summary: 'Consultar un turno: código, servicio, estado y personas delante (público)',
+                parameters: [
+                    { name: 'id', in: 'path', required: true, schema: { type: 'string' } }
+                ],
+                responses: {
+                    200: {
+                        description: 'Estado del turno',
+                        content: {
+                            'application/json': {
+                                schema: {
+                                    type: 'object',
+                                    properties: {
+                                        success: { type: 'boolean', example: true },
+                                        data: { $ref: '#/components/schemas/TicketStatusView' }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    400: { description: 'Id inválido' },
+                    404: { description: 'Ticket no encontrado' }
+                }
+            }
+        },
+        // código nuevo
+        '/queue': {
+            get: {
+                tags: ['Cola'],
+                summary: 'Turno actual y lista de espera del día de un servicio, ordenada por número (público)',
+                parameters: [
+                    { name: 'serviceId', in: 'query', required: true, schema: { type: 'string' } }
+                ],
+                responses: {
+                    200: {
+                        description: 'Cola del servicio',
+                        content: {
+                            'application/json': {
+                                schema: {
+                                    type: 'object',
+                                    properties: {
+                                        success: { type: 'boolean', example: true },
+                                        data: { $ref: '#/components/schemas/QueueView' }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    400: { description: 'serviceId faltante o inválido' },
+                    404: { description: 'Servicio no encontrado' }
+                }
+            }
         },
     }
 }
