@@ -477,7 +477,7 @@ export const openapi = {
                 }
             }
         },
-        // código nuevo
+    
         '/queue': {
             get: {
                 tags: ['Cola'],
@@ -502,6 +502,125 @@ export const openapi = {
                     },
                     400: { description: 'serviceId faltante o inválido' },
                     404: { description: 'Servicio no encontrado' }
+                }
+            }
+        },
+
+        '/attention/call-next': {
+            post: {
+                tags: ['Atención'],
+                summary: 'Llamar al siguiente ticket en espera de los servicios del módulo (OPERATOR y ADMIN)',
+                security: [{ bearerAuth: [] }],
+                requestBody: {
+                    required: true,
+                    content: {
+                        'application/json': {
+                            schema: {
+                                type: 'object',
+                                required: ['counterId'],
+                                properties: { counterId: { type: 'string' } }
+                            }
+                        }
+                    }
+                },
+                responses: {
+                    200: { description: 'Ticket llamado (status CALLED, counterId y calledAt)' },
+                    400: { description: 'counterId faltante o inválido' },
+                    401: { description: 'Autenticación requerida' },
+                    403: { description: 'Sin permiso tickets:update' },
+                    404: { description: 'Módulo no encontrado o sin tickets en espera (NO_WAITING_TICKETS)' },
+                    409: { description: 'El módulo ya tiene un ticket activo (COUNTER_BUSY) o está desactivado (COUNTER_INACTIVE)' }
+                }
+            }
+        },
+        '/attention/{ticketId}/start': {
+            post: {
+                tags: ['Atención'],
+                summary: 'Pasar un ticket de CALLED a IN_SERVICE (OPERATOR y ADMIN)',
+                security: [{ bearerAuth: [] }],
+                parameters: [
+                    { name: 'ticketId', in: 'path', required: true, schema: { type: 'string' } }
+                ],
+                requestBody: {
+                    required: false,
+                    content: {
+                        'application/json': {
+                            schema: { type: 'object', properties: { counterId: { type: 'string' } } }
+                        }
+                    }
+                },
+                responses: {
+                    200: { description: 'Ticket en atención (startedAt)' },
+                    401: { description: 'Autenticación requerida' },
+                    403: { description: 'Sin permiso tickets:update' },
+                    404: { description: 'Ticket o módulo no encontrado' },
+                    409: { description: 'Cambio de estado no permitido (INVALID_TRANSITION)' }
+                }
+            }
+        },
+        '/attention/{ticketId}/finish': {
+            post: {
+                tags: ['Atención'],
+                summary: 'Pasar un ticket de IN_SERVICE a DONE (OPERATOR y ADMIN)',
+                security: [{ bearerAuth: [] }],
+                parameters: [
+                    { name: 'ticketId', in: 'path', required: true, schema: { type: 'string' } }
+                ],
+                requestBody: {
+                    required: false,
+                    content: {
+                        'application/json': {
+                            schema: { type: 'object', properties: { counterId: { type: 'string' } } }
+                        }
+                    }
+                },
+                responses: {
+                    200: { description: 'Ticket terminado (finishedAt)' },
+                    401: { description: 'Autenticación requerida' },
+                    403: { description: 'Sin permiso tickets:update' },
+                    404: { description: 'Ticket o módulo no encontrado' },
+                    409: { description: 'Cambio de estado no permitido (INVALID_TRANSITION)' }
+                }
+            }
+        },
+        '/attention/{ticketId}/cancel': {
+            post: {
+                tags: ['Atención'],
+                summary: 'Cancelar un ticket en WAITING o CALLED, por ejemplo si la persona no se presentó (OPERATOR y ADMIN)',
+                security: [{ bearerAuth: [] }],
+                parameters: [
+                    { name: 'ticketId', in: 'path', required: true, schema: { type: 'string' } }
+                ],
+                requestBody: {
+                    required: false,
+                    content: {
+                        'application/json': {
+                            schema: { type: 'object', properties: { counterId: { type: 'string' } } }
+                        }
+                    }
+                },
+                responses: {
+                    200: { description: 'Ticket cancelado (cancelledAt)' },
+                    401: { description: 'Autenticación requerida' },
+                    403: { description: 'Sin permiso tickets:update' },
+                    404: { description: 'Ticket o módulo no encontrado' },
+                    409: { description: 'Cambio de estado no permitido (INVALID_TRANSITION)' }
+                }
+            }
+        },
+        '/attention/counter/{counterId}': {
+            get: {
+                tags: ['Atención'],
+                summary: 'Ticket que está atendiendo el módulo (llamado o en atención); data es null si está libre (OPERATOR y ADMIN)',
+                security: [{ bearerAuth: [] }],
+                parameters: [
+                    { name: 'counterId', in: 'path', required: true, schema: { type: 'string' } }
+                ],
+                responses: {
+                    200: { description: 'Ticket activo del módulo o null' },
+                    401: { description: 'Autenticación requerida' },
+                    403: { description: 'Sin permiso tickets:read' },
+                    404: { description: 'Módulo no encontrado' }
                 }
             }
         },
