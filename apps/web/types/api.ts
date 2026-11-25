@@ -33,6 +33,15 @@ export interface User {
   updatedAt?: string | null
 }
 
+export interface UserPayload {
+  name: string
+  email: string
+  password: string
+  role: Role
+}
+
+export type UserUpdate = Partial<Pick<User, 'name' | 'role' | 'active'>>
+
 export interface AuthResponse {
   user: User
   accessToken: string
