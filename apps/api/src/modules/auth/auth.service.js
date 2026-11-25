@@ -39,7 +39,7 @@ async function issueTokens(user) {
     return tokens
 }
 
-// El registro público SIEMPRE crea VISITOR. Los OPERATOR y ADMIN se crean con el script seed:users
+// El registro público SIEMPRE crea VISITOR. Los OPERATOR y ADMIN los crea un ADMIN en /users (o el script seed:users)
 export async function register(data) {
     const existingUser = await userRepository.findByEmail(data.email)
     if (existingUser) {

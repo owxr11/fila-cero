@@ -13,7 +13,8 @@ export const permissionsByRole =
         OPERATOR: new Set([
             'tickets:read',
             'tickets:update',
-            'counters:read'
+            'counters:read',
+            'history:read'
         ]),
         ADMIN: new Set([
             '*'

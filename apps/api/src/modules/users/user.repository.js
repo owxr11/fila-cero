@@ -26,6 +26,15 @@ function mapUser(document) {
     }
 }
 
+export async function listUsers({ role } = {}) {
+    const query = role ? usersCollection.where('role', '==', role) : usersCollection
+    const snapshot = await query.get()
+
+    return snapshot.docs
+        .map(mapUser)
+        .sort((a, b) => a.name.localeCompare(b.name))
+}
+
 export async function createUser(data) {
     const user = usersCollection.doc()
     await user.set({

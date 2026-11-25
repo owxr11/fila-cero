@@ -236,6 +236,84 @@ export const openapi = {
                 }
             }
         },
+        '/users': {
+            get: {
+                tags: ['Usuarios'],
+                summary: 'Listar usuarios (ADMIN)',
+                security: [{ bearerAuth: [] }],
+                parameters: [
+                    { name: 'role', in: 'query', required: false, schema: { type: 'string', enum: ['VISITOR', 'OPERATOR', 'ADMIN'] } }
+                ],
+                responses: {
+                    200: { description: 'Lista de usuarios ordenada por nombre (sin passwordHash)' },
+                    400: { description: 'Rol inválido' },
+                    401: { description: 'Autenticación requerida' },
+                    403: { description: 'Sin permiso users:read' }
+                }
+            },
+            post: {
+                tags: ['Usuarios'],
+                summary: 'Crear operador o administrador (ADMIN)',
+                security: [{ bearerAuth: [] }],
+                requestBody: {
+                    required: true,
+                    content: {
+                        'application/json': {
+                            schema: {
+                                type: 'object',
+                                required: ['name', 'email', 'password', 'role'],
+                                properties: {
+                                    name: { type: 'string', minLength: 2, maxLength: 120, example: 'Operador Dos' },
+                                    email: { type: 'string', example: 'operador2@filacero.test' },
+                                    password: { type: 'string', minLength: 8, maxLength: 100, example: 'Operador12345' },
+                                    role: { type: 'string', enum: ['OPERATOR', 'ADMIN'] }
+                                }
+                            }
+                        }
+                    }
+                },
+                responses: {
+                    201: { description: 'Usuario creado' },
+                    400: { description: 'Datos inválidos' },
+                    401: { description: 'Autenticación requerida' },
+                    403: { description: 'Sin permiso users:create' },
+                    409: { description: 'El correo ya está registrado' }
+                }
+            }
+        },
+        '/users/{id}': {
+            patch: {
+                tags: ['Usuarios'],
+                summary: 'Cambiar nombre, rol o estado de un usuario (ADMIN)',
+                security: [{ bearerAuth: [] }],
+                parameters: [
+                    { name: 'id', in: 'path', required: true, schema: { type: 'string' } }
+                ],
+                requestBody: {
+                    required: true,
+                    content: {
+                        'application/json': {
+                            schema: {
+                                type: 'object',
+                                properties: {
+                                    name: { type: 'string', minLength: 2, maxLength: 120 },
+                                    role: { type: 'string', enum: ['VISITOR', 'OPERATOR', 'ADMIN'] },
+                                    active: { type: 'boolean' }
+                                }
+                            }
+                        }
+                    }
+                },
+                responses: {
+                    200: { description: 'Usuario actualizado' },
+                    400: { description: 'Datos inválidos' },
+                    401: { description: 'Autenticación requerida' },
+                    403: { description: 'Sin permiso users:update' },
+                    404: { description: 'Usuario no encontrado' },
+                    409: { description: 'El administrador intentó quitarse su rol o desactivarse' }
+                }
+            }
+        },
         '/services': {
             get: {
                 tags: ['Servicios'],

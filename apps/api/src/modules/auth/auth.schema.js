@@ -2,8 +2,8 @@ import { z } from 'zod'
 
 const empty = z.object({}).default({})
 
-const email = z.string().trim().toLowerCase().email('Correo inválido')
-const password = z.string()
+export const email = z.string().trim().toLowerCase().email('Correo inválido')
+export const password = z.string()
     .min(8, 'La contraseña debe tener al menos 8 caracteres')
     .max(100, 'La contraseña es demasiado larga')
 
