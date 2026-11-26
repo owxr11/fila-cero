@@ -1,5 +1,7 @@
 <template>
   <section class="space-y-4">
+    <OrganizationBanner />
+
     <div>
       <p class="font-semibold text-teal-700">
         Visitante

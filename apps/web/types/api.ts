@@ -124,3 +124,59 @@ export interface QueueView {
   isDefaultEstimate?: boolean
   ticketsUsed?: number
 }
+
+export interface Organization {
+  id: string
+  name: string
+  address: string
+  schedule: string
+  message: string
+  active: boolean
+  updatedAt?: string | null
+}
+
+export type OrganizationPayload = Partial<Pick<Organization, 'name' | 'address' | 'schedule' | 'message'>>
+
+export interface HistoryFilters {
+  date?: string
+  serviceId?: string
+  counterId?: string
+  status?: TicketStatus | ''
+}
+
+export interface HistoryTicket {
+  id: string
+  serviceId: string
+  serviceName: string | null
+  number: number
+  code: string
+  dayKey: string
+  status: TicketStatus
+  counterId: string | null
+  counterName: string | null
+  createdAt: string | null
+  calledAt: string | null
+  startedAt: string | null
+  finishedAt: string | null
+  cancelledAt: string | null
+  waitMinutes: number | null
+  attentionMinutes: number | null
+}
+
+export interface CounterSummary {
+  counterId: string | null
+  counterName: string
+  attended: number
+  cancelled: number
+  averageAttentionMinutes: number | null
+}
+
+export interface HistorySummary {
+  filters: HistoryFilters & { date: string }
+  counters: CounterSummary[]
+  totals: {
+    attended: number
+    cancelled: number
+    averageAttentionMinutes: number | null
+  }
+}
