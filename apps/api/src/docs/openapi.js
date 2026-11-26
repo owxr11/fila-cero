@@ -674,5 +674,87 @@ export const openapi = {
                 }
             }
         },
+        '/organizations/{id}': {
+            get: {
+                tags: ['Establecimiento'],
+                summary: 'Datos públicos del establecimiento (nombre, dirección, horario y mensaje)',
+                parameters: [
+                    { name: 'id', in: 'path', required: true, schema: { type: 'string', example: 'demo' } }
+                ],
+                responses: {
+                    200: { description: 'Establecimiento' },
+                    404: { description: 'Establecimiento no encontrado' }
+                }
+            },
+            patch: {
+                tags: ['Establecimiento'],
+                summary: 'Editar los datos del establecimiento (solo ADMIN)',
+                security: [{ bearerAuth: [] }],
+                parameters: [
+                    { name: 'id', in: 'path', required: true, schema: { type: 'string', example: 'demo' } }
+                ],
+                requestBody: {
+                    required: true,
+                    content: {
+                        'application/json': {
+                            schema: {
+                                type: 'object',
+                                properties: {
+                                    name: { type: 'string', minLength: 2, maxLength: 80, example: 'FilaCero Demo' },
+                                    address: { type: 'string', maxLength: 160, example: 'Av. Siempre Viva 123, CDMX' },
+                                    schedule: { type: 'string', maxLength: 120, example: 'Lunes a viernes de 9:00 a 17:00' },
+                                    message: { type: 'string', maxLength: 280, example: 'Toma tu turno y espera a que te llamen.' }
+                                }
+                            }
+                        }
+                    }
+                },
+                responses: {
+                    200: { description: 'Establecimiento actualizado' },
+                    400: { description: 'Datos inválidos' },
+                    401: { description: 'Autenticación requerida' },
+                    403: { description: 'Sin permiso organizations:update' },
+                    404: { description: 'Establecimiento no encontrado' }
+                }
+            }
+        },
+        '/history': {
+            get: {
+                tags: ['Historial'],
+                summary: 'Tickets del día con tiempos de espera y de atención (OPERATOR y ADMIN)',
+                security: [{ bearerAuth: [] }],
+                parameters: [
+                    { name: 'date', in: 'query', required: false, schema: { type: 'string', example: '2026-11-25' }, description: 'AAAA-MM-DD; por defecto hoy (hora de México)' },
+                    { name: 'serviceId', in: 'query', required: false, schema: { type: 'string' } },
+                    { name: 'counterId', in: 'query', required: false, schema: { type: 'string' } },
+                    { name: 'status', in: 'query', required: false, schema: { type: 'string', enum: ['WAITING', 'CALLED', 'IN_SERVICE', 'DONE', 'CANCELLED'] } }
+                ],
+                responses: {
+                    200: { description: 'Lista de tickets con waitMinutes y attentionMinutes' },
+                    400: { description: 'Filtros inválidos' },
+                    401: { description: 'Autenticación requerida' },
+                    403: { description: 'Sin permiso history:read' }
+                }
+            }
+        },
+        '/history/summary': {
+            get: {
+                tags: ['Historial'],
+                summary: 'Resumen por módulo: atendidos, cancelados y tiempo promedio de atención (OPERATOR y ADMIN)',
+                security: [{ bearerAuth: [] }],
+                parameters: [
+                    { name: 'date', in: 'query', required: false, schema: { type: 'string', example: '2026-11-25' } },
+                    { name: 'serviceId', in: 'query', required: false, schema: { type: 'string' } },
+                    { name: 'counterId', in: 'query', required: false, schema: { type: 'string' } },
+                    { name: 'status', in: 'query', required: false, schema: { type: 'string', enum: ['WAITING', 'CALLED', 'IN_SERVICE', 'DONE', 'CANCELLED'] } }
+                ],
+                responses: {
+                    200: { description: 'Resumen por módulo y totales' },
+                    400: { description: 'Filtros inválidos' },
+                    401: { description: 'Autenticación requerida' },
+                    403: { description: 'Sin permiso history:read' }
+                }
+            }
+        },
     }
 }
