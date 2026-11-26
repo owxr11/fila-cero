@@ -86,7 +86,12 @@ export const openapi = {
                     code: { type: 'string', example: 'A-007' },
                     serviceName: { type: 'string', example: 'Caja' },
                     status: { type: 'string', enum: ['WAITING', 'CALLED', 'IN_SERVICE', 'DONE', 'CANCELLED'] },
-                    ahead: { type: 'integer', minimum: 0, example: 3, description: 'Personas delante (tickets WAITING del mismo servicio y día con número menor)' }
+                    ahead: { type: 'integer', minimum: 0, example: 3, description: 'Personas delante (tickets WAITING del mismo servicio y día con número menor)' },
+                    counterId: { type: 'string', nullable: true, example: 'cnt-1' },
+                    counterName: { type: 'string', nullable: true, example: 'Módulo 2' },
+                    estimatedMinutes: { type: 'integer', minimum: 0, example: 12, description: 'Tiempo estimado de espera en minutos' },
+                    isDefault: { type: 'boolean', example: false, description: 'Indica si el cálculo proviene del valor por defecto (5 min/persona)' },
+                    ticketsSampled: { type: 'integer', minimum: 0, example: 10, description: 'Cantidad de tickets terminados usados para el cálculo (hasta 10)' }
                 }
             },
             // QueueView: {
@@ -101,7 +106,8 @@ export const openapi = {
                         properties: {
                             id: { type: 'string' },
                             code: { type: 'string', example: 'A-006' },
-                            counterId: { type: 'string', nullable: true }
+                            counterId: { type: 'string', nullable: true },
+                            counterName: { type: 'string', nullable: true, example: 'Módulo 1' }
                         }
                     },
                     waiting: {
@@ -115,7 +121,10 @@ export const openapi = {
                                 number: { type: 'integer', example: 7 }
                             }
                         }
-                    }
+                    },
+                    estimatedMinutes: { type: 'integer', minimum: 0, example: 15, description: 'Tiempo estimado de espera en minutos' },
+                    isDefault: { type: 'boolean', example: false, description: 'Indica si el cálculo proviene del valor por defecto' },
+                    ticketsSampled: { type: 'integer', minimum: 0, example: 10, description: 'Cantidad de tickets terminados usados para el cálculo' }
                 }
             }
         }
@@ -233,6 +242,84 @@ export const openapi = {
                 responses: {
                     200: { description: 'Usuario actual (sin passwordHash)' },
                     401: { description: 'Token ausente o inválido' }
+                }
+            }
+        },
+        '/users': {
+            get: {
+                tags: ['Usuarios'],
+                summary: 'Listar usuarios (ADMIN)',
+                security: [{ bearerAuth: [] }],
+                parameters: [
+                    { name: 'role', in: 'query', required: false, schema: { type: 'string', enum: ['VISITOR', 'OPERATOR', 'ADMIN'] } }
+                ],
+                responses: {
+                    200: { description: 'Lista de usuarios ordenada por nombre (sin passwordHash)' },
+                    400: { description: 'Rol inválido' },
+                    401: { description: 'Autenticación requerida' },
+                    403: { description: 'Sin permiso users:read' }
+                }
+            },
+            post: {
+                tags: ['Usuarios'],
+                summary: 'Crear operador o administrador (ADMIN)',
+                security: [{ bearerAuth: [] }],
+                requestBody: {
+                    required: true,
+                    content: {
+                        'application/json': {
+                            schema: {
+                                type: 'object',
+                                required: ['name', 'email', 'password', 'role'],
+                                properties: {
+                                    name: { type: 'string', minLength: 2, maxLength: 120, example: 'Operador Dos' },
+                                    email: { type: 'string', example: 'operador2@filacero.test' },
+                                    password: { type: 'string', minLength: 8, maxLength: 100, example: 'Operador12345' },
+                                    role: { type: 'string', enum: ['OPERATOR', 'ADMIN'] }
+                                }
+                            }
+                        }
+                    }
+                },
+                responses: {
+                    201: { description: 'Usuario creado' },
+                    400: { description: 'Datos inválidos' },
+                    401: { description: 'Autenticación requerida' },
+                    403: { description: 'Sin permiso users:create' },
+                    409: { description: 'El correo ya está registrado' }
+                }
+            }
+        },
+        '/users/{id}': {
+            patch: {
+                tags: ['Usuarios'],
+                summary: 'Cambiar nombre, rol o estado de un usuario (ADMIN)',
+                security: [{ bearerAuth: [] }],
+                parameters: [
+                    { name: 'id', in: 'path', required: true, schema: { type: 'string' } }
+                ],
+                requestBody: {
+                    required: true,
+                    content: {
+                        'application/json': {
+                            schema: {
+                                type: 'object',
+                                properties: {
+                                    name: { type: 'string', minLength: 2, maxLength: 120 },
+                                    role: { type: 'string', enum: ['VISITOR', 'OPERATOR', 'ADMIN'] },
+                                    active: { type: 'boolean' }
+                                }
+                            }
+                        }
+                    }
+                },
+                responses: {
+                    200: { description: 'Usuario actualizado' },
+                    400: { description: 'Datos inválidos' },
+                    401: { description: 'Autenticación requerida' },
+                    403: { description: 'Sin permiso users:update' },
+                    404: { description: 'Usuario no encontrado' },
+                    409: { description: 'El administrador intentó quitarse su rol o desactivarse' }
                 }
             }
         },
@@ -416,7 +503,7 @@ export const openapi = {
         '/queue/tickets/{id}': {
             get: {
                 tags: ['Cola'],
-                summary: 'Consultar un turno: código, servicio, estado y personas delante (público)',
+                summary: 'Consultar un turno: código, servicio, estado, personas delante y tiempo estimado de espera (público)',
                 parameters: [
                     { name: 'id', in: 'path', required: true, schema: { type: 'string' } }
                 ],
@@ -440,11 +527,11 @@ export const openapi = {
                 }
             }
         },
-        // código nuevo
+    
         '/queue': {
             get: {
                 tags: ['Cola'],
-                summary: 'Turno actual y lista de espera del día de un servicio, ordenada por número (público)',
+                summary: 'Turno actual, lista de espera del día y tiempo estimado de espera de un servicio (público)',
                 parameters: [
                     { name: 'serviceId', in: 'query', required: true, schema: { type: 'string' } }
                 ],
@@ -465,6 +552,125 @@ export const openapi = {
                     },
                     400: { description: 'serviceId faltante o inválido' },
                     404: { description: 'Servicio no encontrado' }
+                }
+            }
+        },
+
+        '/attention/call-next': {
+            post: {
+                tags: ['Atención'],
+                summary: 'Llamar al siguiente ticket en espera de los servicios del módulo (OPERATOR y ADMIN)',
+                security: [{ bearerAuth: [] }],
+                requestBody: {
+                    required: true,
+                    content: {
+                        'application/json': {
+                            schema: {
+                                type: 'object',
+                                required: ['counterId'],
+                                properties: { counterId: { type: 'string' } }
+                            }
+                        }
+                    }
+                },
+                responses: {
+                    200: { description: 'Ticket llamado (status CALLED, counterId y calledAt)' },
+                    400: { description: 'counterId faltante o inválido' },
+                    401: { description: 'Autenticación requerida' },
+                    403: { description: 'Sin permiso tickets:update' },
+                    404: { description: 'Módulo no encontrado o sin tickets en espera (NO_WAITING_TICKETS)' },
+                    409: { description: 'El módulo ya tiene un ticket activo (COUNTER_BUSY) o está desactivado (COUNTER_INACTIVE)' }
+                }
+            }
+        },
+        '/attention/{ticketId}/start': {
+            post: {
+                tags: ['Atención'],
+                summary: 'Pasar un ticket de CALLED a IN_SERVICE (OPERATOR y ADMIN)',
+                security: [{ bearerAuth: [] }],
+                parameters: [
+                    { name: 'ticketId', in: 'path', required: true, schema: { type: 'string' } }
+                ],
+                requestBody: {
+                    required: false,
+                    content: {
+                        'application/json': {
+                            schema: { type: 'object', properties: { counterId: { type: 'string' } } }
+                        }
+                    }
+                },
+                responses: {
+                    200: { description: 'Ticket en atención (startedAt)' },
+                    401: { description: 'Autenticación requerida' },
+                    403: { description: 'Sin permiso tickets:update' },
+                    404: { description: 'Ticket o módulo no encontrado' },
+                    409: { description: 'Cambio de estado no permitido (INVALID_TRANSITION)' }
+                }
+            }
+        },
+        '/attention/{ticketId}/finish': {
+            post: {
+                tags: ['Atención'],
+                summary: 'Pasar un ticket de IN_SERVICE a DONE (OPERATOR y ADMIN)',
+                security: [{ bearerAuth: [] }],
+                parameters: [
+                    { name: 'ticketId', in: 'path', required: true, schema: { type: 'string' } }
+                ],
+                requestBody: {
+                    required: false,
+                    content: {
+                        'application/json': {
+                            schema: { type: 'object', properties: { counterId: { type: 'string' } } }
+                        }
+                    }
+                },
+                responses: {
+                    200: { description: 'Ticket terminado (finishedAt)' },
+                    401: { description: 'Autenticación requerida' },
+                    403: { description: 'Sin permiso tickets:update' },
+                    404: { description: 'Ticket o módulo no encontrado' },
+                    409: { description: 'Cambio de estado no permitido (INVALID_TRANSITION)' }
+                }
+            }
+        },
+        '/attention/{ticketId}/cancel': {
+            post: {
+                tags: ['Atención'],
+                summary: 'Cancelar un ticket en WAITING o CALLED, por ejemplo si la persona no se presentó (OPERATOR y ADMIN)',
+                security: [{ bearerAuth: [] }],
+                parameters: [
+                    { name: 'ticketId', in: 'path', required: true, schema: { type: 'string' } }
+                ],
+                requestBody: {
+                    required: false,
+                    content: {
+                        'application/json': {
+                            schema: { type: 'object', properties: { counterId: { type: 'string' } } }
+                        }
+                    }
+                },
+                responses: {
+                    200: { description: 'Ticket cancelado (cancelledAt)' },
+                    401: { description: 'Autenticación requerida' },
+                    403: { description: 'Sin permiso tickets:update' },
+                    404: { description: 'Ticket o módulo no encontrado' },
+                    409: { description: 'Cambio de estado no permitido (INVALID_TRANSITION)' }
+                }
+            }
+        },
+        '/attention/counter/{counterId}': {
+            get: {
+                tags: ['Atención'],
+                summary: 'Ticket que está atendiendo el módulo (llamado o en atención); data es null si está libre (OPERATOR y ADMIN)',
+                security: [{ bearerAuth: [] }],
+                parameters: [
+                    { name: 'counterId', in: 'path', required: true, schema: { type: 'string' } }
+                ],
+                responses: {
+                    200: { description: 'Ticket activo del módulo o null' },
+                    401: { description: 'Autenticación requerida' },
+                    403: { description: 'Sin permiso tickets:read' },
+                    404: { description: 'Módulo no encontrado' }
                 }
             }
         },

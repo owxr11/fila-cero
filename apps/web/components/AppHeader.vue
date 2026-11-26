@@ -36,6 +36,14 @@
           Admin
         </NuxtLink>
 
+        <NuxtLink
+          v-if="auth.isAdmin"
+          class="rounded px-3 py-2 font-medium text-slate-700 hover:bg-slate-100"
+          to="/admin/users"
+        >
+          Usuarios
+        </NuxtLink>
+
         <template v-if="auth.isAuthenticated">
           <span class="hidden text-slate-500 sm:inline">
             {{ auth.user?.name }} · {{ auth.role }}

@@ -33,6 +33,15 @@ export interface User {
   updatedAt?: string | null
 }
 
+export interface UserPayload {
+  name: string
+  email: string
+  password: string
+  role: Role
+}
+
+export type UserUpdate = Partial<Pick<User, 'name' | 'role' | 'active'>>
+
 export interface AuthResponse {
   user: User
   accessToken: string
@@ -93,11 +102,25 @@ export interface TicketStatusView {
   serviceName: string
   status: TicketStatus
   ahead: number
+  counterId?: string | null
+  counterName?: string | null
+  estimatedMinutes: number
+  isDefault: boolean
+  ticketsSampled: number
+  estimatedWaitTimeMinutes?: number
+  isDefaultEstimate?: boolean
+  ticketsUsed?: number
 }
 
 export interface QueueView {
   serviceId: string
   dayKey: string
-  current: Pick<Ticket, 'id' | 'code' | 'counterId'> | null
+  current: (Pick<Ticket, 'id' | 'code' | 'counterId'> & { counterName?: string | null }) | null
   waiting: Pick<Ticket, 'id' | 'code' | 'number'>[]
+  estimatedMinutes: number
+  isDefault: boolean
+  ticketsSampled: number
+  estimatedWaitTimeMinutes?: number
+  isDefaultEstimate?: boolean
+  ticketsUsed?: number
 }

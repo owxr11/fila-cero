@@ -18,7 +18,8 @@
         "check:firestore": "node scripts/check-firestore.js",
         "dev:token": "node scripts/dev-token.js",
         "seed:users": "node scripts/seed-users.js",
-        "seed:catalog": "node scripts/seed-catalog.js"
+        "seed:catalog": "node scripts/seed-catalog.js",
+        "seed:history": "node scripts/seed-demo-history.js"
     },
     "dependencies": {
         "bcryptjs": "^3.0.3",
