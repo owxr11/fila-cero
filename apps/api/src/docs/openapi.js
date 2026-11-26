@@ -86,7 +86,12 @@ export const openapi = {
                     code: { type: 'string', example: 'A-007' },
                     serviceName: { type: 'string', example: 'Caja' },
                     status: { type: 'string', enum: ['WAITING', 'CALLED', 'IN_SERVICE', 'DONE', 'CANCELLED'] },
-                    ahead: { type: 'integer', minimum: 0, example: 3, description: 'Personas delante (tickets WAITING del mismo servicio y día con número menor)' }
+                    ahead: { type: 'integer', minimum: 0, example: 3, description: 'Personas delante (tickets WAITING del mismo servicio y día con número menor)' },
+                    counterId: { type: 'string', nullable: true, example: 'cnt-1' },
+                    counterName: { type: 'string', nullable: true, example: 'Módulo 2' },
+                    estimatedMinutes: { type: 'integer', minimum: 0, example: 12, description: 'Tiempo estimado de espera en minutos' },
+                    isDefault: { type: 'boolean', example: false, description: 'Indica si el cálculo proviene del valor por defecto (5 min/persona)' },
+                    ticketsSampled: { type: 'integer', minimum: 0, example: 10, description: 'Cantidad de tickets terminados usados para el cálculo (hasta 10)' }
                 }
             },
             // QueueView: {
@@ -101,7 +106,8 @@ export const openapi = {
                         properties: {
                             id: { type: 'string' },
                             code: { type: 'string', example: 'A-006' },
-                            counterId: { type: 'string', nullable: true }
+                            counterId: { type: 'string', nullable: true },
+                            counterName: { type: 'string', nullable: true, example: 'Módulo 1' }
                         }
                     },
                     waiting: {
@@ -115,7 +121,10 @@ export const openapi = {
                                 number: { type: 'integer', example: 7 }
                             }
                         }
-                    }
+                    },
+                    estimatedMinutes: { type: 'integer', minimum: 0, example: 15, description: 'Tiempo estimado de espera en minutos' },
+                    isDefault: { type: 'boolean', example: false, description: 'Indica si el cálculo proviene del valor por defecto' },
+                    ticketsSampled: { type: 'integer', minimum: 0, example: 10, description: 'Cantidad de tickets terminados usados para el cálculo' }
                 }
             }
         }
@@ -453,7 +462,7 @@ export const openapi = {
         '/queue/tickets/{id}': {
             get: {
                 tags: ['Cola'],
-                summary: 'Consultar un turno: código, servicio, estado y personas delante (público)',
+                summary: 'Consultar un turno: código, servicio, estado, personas delante y tiempo estimado de espera (público)',
                 parameters: [
                     { name: 'id', in: 'path', required: true, schema: { type: 'string' } }
                 ],
@@ -481,7 +490,7 @@ export const openapi = {
         '/queue': {
             get: {
                 tags: ['Cola'],
-                summary: 'Turno actual y lista de espera del día de un servicio, ordenada por número (público)',
+                summary: 'Turno actual, lista de espera del día y tiempo estimado de espera de un servicio (público)',
                 parameters: [
                     { name: 'serviceId', in: 'query', required: true, schema: { type: 'string' } }
                 ],
