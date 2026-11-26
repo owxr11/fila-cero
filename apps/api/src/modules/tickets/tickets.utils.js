@@ -1,6 +1,9 @@
 // Funciones puras
 const TZ = 'America/Mexico_City'
 
+// Estados en lo que un ticket cuenta como "activo" para evitar duplicados
+export const ACTIVE_TICKET_STATUSES = ['WAITING', 'CALLED', 'IN_SERVICE']
+
 // Devuelve 'AAAA-MM-DD' en zona horaria de México
 export function buildDayKey(date = new Date()) {
     return new Intl.DateTimeFormat('en-CA', {

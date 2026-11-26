@@ -20,6 +20,20 @@
       {{ error }}
     </p>
 
+    <p
+      v-if="existing"
+      role="alert"
+      class="rounded border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800"
+    >
+      Ya tienes el turno <strong>{{ existing.code }}</strong>.
+      <NuxtLink
+        :to="`/ticket/${existing.ticketId}`"
+        class="font-semibold underline"
+      >
+        Ver mi turno
+      </NuxtLink>
+    </p>
+
     <p v-if="pending" class="text-slate-600">
       Cargando servicios...
     </p>
@@ -58,27 +72,18 @@
     </ul>
   </section>
 </template>
-<script setup lang="ts">
-// integrante 3
-interface Service {
-  id: string
-  name: string
-  prefix: string
-  active?: boolean
-}
 
-interface Ticket {
-  id: string
-  code: string
-  number: number
-  status: string
-}
+<script setup lang="ts">
+import type { Service } from '~/types/api'
+import { ApiError } from '~/composables/useApi'
 
 const { request } = useApi()
+const ticketsStore = useTicketsStore()
 
 const services = ref<Service[]>([])
 const pending = ref(true)
 const error = ref('')
+const existing = ref<{ ticketId: string; code: string } | null>(null)
 const loadingId = ref<string | null>(null)
 
 onMounted(async () => {
@@ -95,17 +100,21 @@ onMounted(async () => {
 })
 
 async function takeTicket(serviceId: string) {
+  if (loadingId.value !== null) return
+
   error.value = ''
+  existing.value = null
   loadingId.value = serviceId
+
   try {
-    // Ruta pública: no lleva auth
-    const ticket = await request<Ticket>('/tickets', {
-      method: 'POST',
-      body: { serviceId }
-    })
+    const ticket = await ticketsStore.issueTicket(serviceId)
     await navigateTo(`/ticket/${ticket.id}`)
   } catch (e) {
-    error.value = e instanceof Error ? e.message : 'No se pudo emitir el turno.'
+    if (e instanceof ApiError && e.code === 'ACTIVE_TICKET_EXISTS') {
+      existing.value = e.details as { ticketId: string; code: string }
+    } else {
+      error.value = e instanceof Error ? e.message : 'No se pudo emitir el turno.'
+    }
   } finally {
     loadingId.value = null
   }

@@ -13,6 +13,7 @@
         "start": "node src/server.js",
         "test": "vitest run",
         "test:watch": "vitest",
+        "test:concurrency": "node scripts/concurrency-test.js",
         "lint": "eslint src",
         "check:firestore": "node scripts/check-firestore.js",
         "dev:token": "node scripts/dev-token.js",

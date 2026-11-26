@@ -22,6 +22,19 @@ function buildQuery(
   return serialized ? `?${serialized}` : ''
 }
 
+export class ApiError extends Error {
+  statusCode: number
+  code?: string
+  details?: unknown
+
+  constructor(message: string, statusCode: number, code?: string, details?: unknown) {
+    super(message)
+    this.name = 'ApiError'
+    this.statusCode = statusCode
+    this.code = code
+    this.details = details
+  }
+}
 
 export function useApi() {
   const config = useRuntimeConfig()
@@ -79,11 +92,12 @@ export function useApi() {
           ? payload.error
           : undefined
 
-      const message =
-        apiError?.message ??
-        'No se pudo completar la operación'
-
-      throw new Error(message)
+      throw new ApiError(
+        apiError?.message ?? 'No se pudo completar la operación',
+        response.status,
+        apiError?.code,
+        apiError?.details
+      )
     }
 
     return (payload as ApiEnvelope<TResponse>).data

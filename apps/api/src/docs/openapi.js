@@ -351,25 +351,66 @@ export const openapi = {
         '/tickets': {
             post: {
                 tags: ['Tickets'],
-                summary: 'Emitir un turno (público)',
+                summary: 'Emitir un turno (público). Un clientId no puede tener dos turnos activos en el mismo servicio y día',
                 requestBody: {
                     required: true,
                     content: {
                         'application/json': {
                             schema: {
-                                type: 'object', required: ['serviceId'],
-                                properties: { serviceId: { type: 'string' } },
+                                type: 'object',
+                                required: ['serviceId', 'clientId'],
+                                properties: {
+                                    serviceId: { type: 'string' },
+                                    clientId: {
+                                        type: 'string',
+                                        minLength: 8,
+                                        maxLength: 100,
+                                        example: 'b3c1f6e2-8a41-4d0e-9c55-1f2a7e0d4b11',
+                                        description: 'Identificador generado por el navegador (localStorage)'
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                responses: {
+                    201: {
+                        description: 'Ticket creado',
+                        content: {
+                            'application/json': {
+                                schema: {
+                                    type: 'object',
+                                    properties: {
+                                        success: { type: 'boolean', example: true },
+                                        data: {
+                                            type: 'object',
+                                            properties: {
+                                                id: { type: 'string' },
+                                                orgId: { type: 'string', example: 'demo' },
+                                                serviceId: { type: 'string' },
+                                                serviceName: { type: 'string', example: 'Caja' },
+                                                number: { type: 'integer', example: 7 },
+                                                code: { type: 'string', example: 'A-007' },
+                                                dayKey: { type: 'string', example: '2026-11-26' },
+                                                status: { type: 'string', example: 'WAITING' },
+                                                counterId: { type: 'string', nullable: true },
+                                                calledAt: { type: 'string', nullable: true },
+                                                startedAt: { type: 'string', nullable: true },
+                                                finishedAt: { type: 'string', nullable: true }
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         }
                     },
-                },
-                responses: {
-                    201: { description: 'Ticket creado (id, code, number, status)' },
-                    400: { description: 'Datos inválidos' },
-                    404: { description: 'Servicio no encontrado' },
-                    409: { description: 'Servicio inactivo' },
-                },
-            },
+                    400: { description: 'Datos inválidos (VALIDATION_ERROR)' },
+                    404: { description: 'Servicio no encontrado (SERVICE_NOT_FOUND)' },
+                    409: {
+                        description: 'SERVICE_INACTIVE, o ACTIVE_TICKET_EXISTS (con error.details = { ticketId, code })'
+                    }
+                }
+            }
         },
         // queue
         '/queue/tickets/{id}': {

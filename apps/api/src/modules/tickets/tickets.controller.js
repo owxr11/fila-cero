@@ -1,17 +1,13 @@
-import * as service from './tickets.service.js';
-import { AppError } from '../../shared/errors/app-errors.js';
+import * as service from './tickets.service.js'
 
-export async function create(req, res, next) {
-    try {
-        const { serviceId } = req.body;
+export async function create(req, res) {
+    const ticket = await service.createTicket(req.validated.body)
 
-        if (!serviceId) {
-            throw new AppError('El campo serviceId es obligatorio', 400);
+    return res.status(201).json({
+        success: true,
+        data: ticket,
+        meta: {
+            requestId: req.id
         }
-
-        const ticket = await service.createTicket({ serviceId });
-        res.status(201).json({ data: ticket })
-    } catch (e) {
-        next(e);
-    }
+    })
 }

@@ -53,9 +53,6 @@
       </p>
     </div>
 
-    <p class="mt-4 font-mono text-sm text-slate-500">
-      Ticket: {{ ticketId }}
-    </p>
   </section>
 </template>
 
