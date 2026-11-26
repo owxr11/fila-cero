@@ -6,6 +6,8 @@ const ORG_ID = 'demo'
 const organization = {
     name: 'FilaCero Demo',
     address: 'Av. Siempre Viva 123, Ciudad de México',
+    schedule: 'Lunes a viernes de 9:00 a 17:00',
+    message: 'Toma tu turno desde aquí y espera a que te llamen en el tablero.',
     active: true
 }
 
@@ -24,13 +26,28 @@ async function seedOrganization() {
     const reference = db.collection(COLLECTIONS.organizations).doc(ORG_ID)
     const snapshot = await reference.get()
 
-    await reference.set({
-        ...organization,
-        ...(snapshot.exists ? {} : { createdAt: FieldValue.serverTimestamp() }),
-        updatedAt: FieldValue.serverTimestamp()
-    }, { merge: true })
+    if (!snapshot.exists) {
+        await reference.set({
+            ...organization,
+            createdAt: FieldValue.serverTimestamp(),
+            updatedAt: FieldValue.serverTimestamp()
+        })
 
-    console.log(`Organización ${ORG_ID} ${snapshot.exists ? 'actualizada' : 'creada'}`)
+        console.log(`Organización ${ORG_ID} creada`)
+        return
+    }
+
+    const missing = Object.fromEntries(
+        Object.entries(organization).filter(([key]) => snapshot.get(key) === undefined)
+    )
+
+    if (Object.keys(missing).length === 0) {
+        console.log(`Organización ${ORG_ID} ya existe`)
+        return
+    }
+
+    await reference.update({ ...missing, updatedAt: FieldValue.serverTimestamp() })
+    console.log(`Organización ${ORG_ID} completada con: ${Object.keys(missing).join(', ')}`)
 }
 
 async function seedServices() {
