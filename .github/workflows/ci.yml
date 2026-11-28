@@ -1,0 +1,46 @@
+# Revisa cada Pull Request y cada push a develop/main: lint, pruebas de la API y tipos de la web
+name: CI
+
+on:
+  pull_request:
+    branches: [develop, main]
+  push:
+    branches: [develop, main]
+
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    env:
+      # Credenciales falsas: las pruebas simulan Firestore y nunca se conectan a Firebase
+      FIREBASE_PROJECT_ID: demo-filacero
+      FIREBASE_CLIENT_EMAIL: ci@demo-filacero.iam.gserviceaccount.com
+      JWT_ACCESS_SECRET: ci-access-secret
+      JWT_REFRESH_SECRET: ci-refresh-secret
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Generar una llave privada de prueba
+        run: |
+          KEY=$(openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 | awk '{printf "%s\\n", $0}')
+          echo "::add-mask::$KEY"
+          echo "FIREBASE_PRIVATE_KEY=$KEY" >> "$GITHUB_ENV"
+
+      - name: Lint de la API
+        run: npm run lint:api
+
+      - name: Pruebas de la API
+        run: npm test
+
+      - name: Tipos de la web
+        run: npm run typecheck:web

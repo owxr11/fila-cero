@@ -1,0 +1,37 @@
+services:
+  - type: web
+    name: filacero-api
+    runtime: node
+    plan: free
+    region: oregon
+    branch: develop
+    buildCommand: npm ci
+    startCommand: npm run start:api
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: "24"
+      - key: API_PREFIX
+        value: /api/v1
+      - key: TIMEZONE
+        value: America/Mexico_City
+      - key: LOG_LEVEL
+        value: info
+      - key: TRUST_PROXY
+        value: "1"
+      - key: RATE_LIMIT_ENABLED
+        value: "true"
+      - key: CORS_ORIGIN
+        sync: false
+      - key: FIREBASE_PROJECT_ID
+        value: fila-cero-p6
+      - key: FIREBASE_CLIENT_EMAIL
+        sync: false
+      - key: FIREBASE_PRIVATE_KEY
+        sync: false
+      - key: JWT_ACCESS_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
