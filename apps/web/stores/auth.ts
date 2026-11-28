@@ -15,6 +15,10 @@ interface TokenPair {
   refreshToken: string
 }
 
+interface RefreshResponse extends TokenPair {
+  user?: User
+}
+
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null)
   const accessToken = ref('')
@@ -146,12 +150,16 @@ export const useAuthStore = defineStore('auth', () => {
 
     try {
       const api = useApi()
-      const tokens = await api.request<TokenPair>('/auth/refresh', {
+      const tokens = await api.request<RefreshResponse>('/auth/refresh', {
         method: 'POST',
         body: { refreshToken: refreshToken.value }
       })
 
       saveTokens(tokens)
+
+      if (tokens.user) {
+        saveUser(tokens.user)
+      }
       return true
     } catch {
       clearSession()
