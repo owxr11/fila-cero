@@ -1,8 +1,9 @@
 import { AppError } from '../errors/app-errors.js'
+import { verifySession } from '../security/session.js'
 import { verifyAccessToken } from '../security/tokens.js'
 
 
-export function authenticate(req, _res, next) {
+export async function authenticate(req, _res, next) {
     const authorization = req.headers.authorization
 
     if (!authorization || !authorization.startsWith('Bearer ')) {
@@ -14,13 +15,10 @@ export function authenticate(req, _res, next) {
     }
 
     const token = authorization.slice(7)
+    let payload
+
     try {
-        const payload = verifyAccessToken(token)
-        req.auth = {
-            userId: payload.sub,
-            role: payload.role
-        }
-        return next()
+        payload = verifyAccessToken(token)
     } catch {
         return next(new AppError({
             statusCode: 401,
@@ -28,4 +26,16 @@ export function authenticate(req, _res, next) {
             message: 'Token de acceso inválido'
         }))
     }
+
+    try {
+        await verifySession(payload)
+    } catch (error) {
+        return next(error)
+    }
+
+    req.auth = {
+        userId: payload.sub,
+        role: payload.role
+    }
+    return next()
 }

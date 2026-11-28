@@ -110,7 +110,10 @@ export async function refresh(refreshToken) {
         })
     }
 
-    return issueTokens(user)
+    return {
+        user,
+        ...await issueTokens(user)
+    }
 }
 
 export async function logout(refreshToken) {

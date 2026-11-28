@@ -1,6 +1,7 @@
 import { ROLES } from '../../config/permissions.js'
 import { AppError } from '../../shared/errors/app-errors.js'
 import { hashPassword } from '../../shared/security/password.js'
+import { forgetSession } from '../../shared/security/session.js'
 import * as repository from './user.repository.js'
 
 export async function listUsers(filters) {
@@ -55,5 +56,7 @@ export async function updateUser(id, data, currentUserId) {
         }
     }
 
-    return repository.updateUser(id, data)
+    const updated = await repository.updateUser(id, data)
+    forgetSession(id)
+    return updated
 }

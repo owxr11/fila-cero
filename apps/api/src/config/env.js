@@ -17,11 +17,22 @@ if (!Number.isInteger(port) || port < 1 || port > 65535) {
     throw new Error('El puerto debe ser válido')
 }
 
+const nodeEnv = process.env.NODE_ENV ?? 'development'
+
+const rateLimitEnabled = process.env.RATE_LIMIT_ENABLED
+    ? process.env.RATE_LIMIT_ENABLED === 'true'
+    : nodeEnv === 'production'
+
 export const env = Object.freeze({
-    NODE_ENV: process.env.NODE_ENV ?? 'development',
+    NODE_ENV: nodeEnv,
     PORT: port,
     API_PREFIX: process.env.API_PREFIX ?? '/api/v1',
-    CORS_ORIGIN: process.env.CORS_ORIGIN ?? 'http://localhost:3000',
+    CORS_ORIGIN: (process.env.CORS_ORIGIN ?? 'http://localhost:3000')
+        .split(',')
+        .map((origin) => origin.trim().replace(/\/$/, ''))
+        .filter(Boolean),
+    TRUST_PROXY: Number(process.env.TRUST_PROXY ?? 0),
+    RATE_LIMIT_ENABLED: rateLimitEnabled,
     LOG_LEVEL: process.env.LOG_LEVEL ?? 'info',
     TIMEZONE: process.env.TIMEZONE ?? 'America/Mexico_City',
     FIREBASE_PROJECT_ID: process.env.FIREBASE_PROJECT_ID,

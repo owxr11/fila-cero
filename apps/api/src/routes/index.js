@@ -8,16 +8,18 @@ import counterRoutes from '../modules/counters/counter.routes.js'
 import ticketRoutes from '../modules/tickets/tickets.routes.js'
 import queueRoutes from '../modules/queue/queue.routes.js'
 import attentionRoutes from '../modules/attention/attention.routes.js'
+import { ticketLimiter } from '../shared/middleware/rate-limit.middleware.js'
 
 const router = Router()
 
 router.use('/health', healthRoutes)
-router.use('/auth', authRoutes)         //integrante 1
-router.use('/users', userRoutes)        //integrante 1
-router.use('/services', serviceRoutes)  //integrante 2
-router.use('/counters', counterRoutes)  //integrante 2
-router.use('/tickets', ticketRoutes)    //integrante 3
-router.use('/queue', queueRoutes)       //integrante 4
-router.use('/attention', attentionRoutes) //integrante 5
+router.use('/auth', authRoutes)       
+router.use('/users', userRoutes)
+router.use('/services', serviceRoutes)
+router.use('/counters', counterRoutes)
+router.post('/tickets', ticketLimiter)
+router.use('/tickets', ticketRoutes)
+router.use('/queue', queueRoutes)
+router.use('/attention', attentionRoutes)
 
 export default router
